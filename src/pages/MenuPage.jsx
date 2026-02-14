@@ -52,21 +52,23 @@ const MenuPage = ({ setCartCount }) => {
                 cart={cart}
                 total={total}
                 onBack={() => setShowCheckout(false)}
-                onConfirm={(name) => {
-                    const newOrder = addOrder({
+                onConfirm={async (name) => {
+                    const newOrder = await addOrder({
                         items: cart.map(i => `${i.quantity}x ${i.name}`),
                         total: total,
                         customer: name,
                         time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
                     });
-                    setShowCheckout(false);
-                    setCart([]);
-                    setCartCount(0);
-                    const myOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-                    myOrders.push(newOrder.id);
-                    localStorage.setItem('my_orders', JSON.stringify(myOrders));
-                    localStorage.setItem('lastOrderId', newOrder.id);
-                    navigate(`/tracking/${newOrder.id}`);
+                    if (newOrder) {
+                        setShowCheckout(false);
+                        setCart([]);
+                        setCartCount(0);
+                        const myOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+                        myOrders.push(newOrder.id);
+                        localStorage.setItem('my_orders', JSON.stringify(myOrders));
+                        localStorage.setItem('lastOrderId', newOrder.id);
+                        navigate(`/tracking/${newOrder.id}`);
+                    }
                 }}
             />
         );
