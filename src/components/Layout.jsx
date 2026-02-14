@@ -3,7 +3,9 @@ import logo from '../assets/logo.png';
 import { useLocation, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
 import { requestNotificationPermission, sendNotification } from '../utils/notifications';
+import { requestNotificationPermission, sendNotification } from '../utils/notifications';
 import NotificationToast from './NotificationToast';
+import NotificationDrawer from './NotificationDrawer';
 
 const Layout = ({ cartCount }) => {
     const location = useLocation();
@@ -11,6 +13,41 @@ const Layout = ({ cartCount }) => {
     const [notification, setNotification] = React.useState({ show: false, message: '', orderId: null });
     const prevOrdersRef = React.useRef([]);
     const navigate = useNavigate();
+
+    // Persistent Notifications State
+    const [notifications, setNotifications] = React.useState([]);
+    const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+
+    // Load notifications from local storage on mount
+    React.useEffect(() => {
+        const stored = JSON.parse(localStorage.getItem('user_notifications') || '[]');
+        setNotifications(stored);
+    }, []);
+
+    // Save notifications to local storage whenever they change
+    React.useEffect(() => {
+        localStorage.setItem('user_notifications', JSON.stringify(notifications));
+    }, [notifications]);
+
+    const addNotification = (title, message, orderId, type = 'info') => {
+        const newNotif = {
+            id: Date.now(),
+            title,
+            message,
+            orderId,
+            type,
+            time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            read: false
+        };
+        setNotifications(prev => [newNotif, ...prev]);
+        return newNotif;
+    };
+
+    const markAsRead = (id) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
+
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     // Check for order status changes
     React.useEffect(() => {
@@ -43,6 +80,9 @@ const Layout = ({ cartCount }) => {
 
                 // Trigger System Notification
                 sendNotification('Pedido Pronto!', `Seu pedido #${order.id} está pronto para retirada!`);
+
+                // Add to persistent notifications
+                addNotification('Pedido Pronto!', `Seu pedido #${order.id} está pronto. Dirija-se ao balcão!`, order.id, 'ready');
 
                 // Auto hide after 5 seconds
                 setTimeout(() => {
@@ -80,6 +120,13 @@ const Layout = ({ cartCount }) => {
                 }}
             />
 
+            <NotificationDrawer
+                isOpen={isDrawerOpen}
+                onClose={() => setIsDrawerOpen(false)}
+                notifications={notifications}
+                onMarkAsRead={markAsRead}
+            />
+
             {/* Header - Conditionally rendered or simplified for specific pages if needed */}
             {isPublicPage && (
                 <header className="sticky top-0 z-50 bg-green-900/90 backdrop-blur-md px-6 pt-8 pb-4 border-b border-green-800 shadow-lg">
@@ -89,14 +136,17 @@ const Layout = ({ cartCount }) => {
                             <span className="font-['Great_Vibes'] text-5xl text-yellow-400 -mt-4 ml-4 drop-shadow-md tracking-wide">Lanchonete</span>
                         </div>
                         <div className="relative">
-                            <div className="bg-primary/10 p-2 rounded-full">
-                                <span className="material-symbols-outlined text-primary">notifications</span>
-                            </div>
-                            {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                                    {cartCount}
-                                </span>
-                            )}
+                            <button
+                                onClick={() => setIsDrawerOpen(true)}
+                                className="bg-primary/10 p-2 rounded-full relative"
+                            >
+                                <span className={`material-symbols-outlined ${unreadCount > 0 ? 'text-primary' : 'text-slate-400'}`}>notifications</span>
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold border-2 border-white">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </header>
