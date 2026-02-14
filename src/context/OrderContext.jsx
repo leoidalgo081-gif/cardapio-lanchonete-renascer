@@ -28,6 +28,11 @@ export const OrderProvider = ({ children }) => {
     useEffect(() => {
         fetchOrders();
 
+        // Polling fallback (every 5 seconds) to ensure data is fresh
+        const interval = setInterval(() => {
+            fetchOrders();
+        }, 5000);
+
         // Real-time subscription
         const channel = supabase
             .channel('orders_channel')
@@ -47,6 +52,7 @@ export const OrderProvider = ({ children }) => {
             .subscribe();
 
         return () => {
+            clearInterval(interval);
             supabase.removeChannel(channel);
         };
     }, []);
