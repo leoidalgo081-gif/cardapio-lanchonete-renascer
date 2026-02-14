@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Copy, Check, ArrowLeft } from 'lucide-react';
+import { Copy, Check, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const CheckoutFlow = ({ cart, total, onBack, onConfirm }) => {
     const [name, setName] = useState('');
     const [step, setStep] = useState(1); // 1: Name, 2: Pix
     const [copied, setCopied] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Mock Pix Key (Ideally this would be a real key or a dynamic BRCode)
     const pixKey = "suachavepix@aqui.com";
@@ -77,11 +80,18 @@ const CheckoutFlow = ({ cart, total, onBack, onConfirm }) => {
             </div>
 
             <button
-                onClick={() => onConfirm(name)}
-                className="w-full bg-primary text-white py-4 rounded-xl font-black text-lg shadow-lg shadow-green-200 active:scale-[0.98] transition-all"
+                onClick={async () => {
+                    setIsLoading(true);
+                    await onConfirm(name);
+                    // Stop loading only if navigation doesn't happen (though usually unmounts)
+                    setTimeout(() => setIsLoading(false), 5000);
+                }}
+                disabled={isLoading}
+                className="w-full bg-primary text-white py-4 rounded-xl font-black text-lg shadow-lg shadow-green-200 active:scale-[0.98] transition-all disabled:opacity-70 disabled:grayscale"
             >
                 Confirmar e Avisar Cozinha
             </button>
+            {isLoading && <LoadingOverlay message="Enviando pedido..." />}
             <p className="text-xs text-center text-slate-400 mt-4 px-8">
                 * A verificação do pagamento será feita no balcão ao retirar.
             </p>
