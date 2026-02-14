@@ -66,10 +66,19 @@ export const OrderProvider = ({ children }) => {
     };
 
     const updateOrderStatus = async (id, status) => {
-        await supabase
+        // Optimistic Update
+        setOrders(prev => prev.map(order => order.id === id ? { ...order, status } : order));
+
+        const { error } = await supabase
             .from('orders')
             .update({ status })
             .eq('id', id);
+
+        if (error) {
+            console.error('Error updating order:', error);
+            // Revert on error (fetch fresh data)
+            fetchOrders();
+        }
     };
 
     const deleteOrder = async (id) => {
