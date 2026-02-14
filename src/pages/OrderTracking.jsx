@@ -6,7 +6,7 @@ import { useOrder } from '../context/OrderContext';
 
 const OrderTracking = () => {
     const { orderId } = useParams();
-    const { orders } = useOrder();
+    const { orders, loading } = useOrder();
     const navigate = useNavigate();
     const [myOrderIds, setMyOrderIds] = useState([]);
 
@@ -21,6 +21,15 @@ const OrderTracking = () => {
     // If viewing a specific order
     if (orderId) {
         const activeOrder = orders.find(o => o.id.toString() === orderId.toString());
+
+        if (loading && !activeOrder) {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 bg-white rounded-ios m-4 shadow-sm">
+                    <div className="w-16 h-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-500 font-bold">Buscando pedido...</p>
+                </div>
+            );
+        }
 
         if (!activeOrder) {
             return (

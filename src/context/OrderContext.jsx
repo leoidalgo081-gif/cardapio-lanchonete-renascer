@@ -7,9 +7,11 @@ export const useOrder = () => useContext(OrderContext);
 
 export const OrderProvider = ({ children }) => {
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     // Fetch initial orders
     const fetchOrders = async () => {
+        setLoading(true);
         const { data, error } = await supabase
             .from('orders')
             .select('*')
@@ -20,6 +22,7 @@ export const OrderProvider = ({ children }) => {
         } else if (error) {
             console.error('Error fetching orders:', error);
         }
+        setLoading(false);
     };
 
     useEffect(() => {
@@ -30,7 +33,11 @@ export const OrderProvider = ({ children }) => {
             .channel('orders_channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
                 if (payload.eventType === 'INSERT') {
-                    setOrders(prev => [payload.new, ...prev]);
+                    setOrders(prev => {
+                        // Avoid duplicates if added manually by addOrder
+                        if (prev.some(o => o.id === payload.new.id)) return prev;
+                        return [payload.new, ...prev];
+                    });
                 } else if (payload.eventType === 'UPDATE') {
                     setOrders(prev => prev.map(order => order.id === payload.new.id ? payload.new : order));
                 } else if (payload.eventType === 'DELETE') {
@@ -62,6 +69,10 @@ export const OrderProvider = ({ children }) => {
             console.error("Error adding order:", error);
             return null;
         }
+
+        // Manually update local state immediately
+        setOrders(prev => [data[0], ...prev]);
+
         return data[0];
     };
 
@@ -89,7 +100,7 @@ export const OrderProvider = ({ children }) => {
     };
 
     return (
-        <OrderContext.Provider value={{ orders, addOrder, updateOrderStatus, deleteOrder }}>
+        <OrderContext.Provider value={{ orders, loading, addOrder, updateOrderStatus, deleteOrder }}>
             {children}
         </OrderContext.Provider>
     );
