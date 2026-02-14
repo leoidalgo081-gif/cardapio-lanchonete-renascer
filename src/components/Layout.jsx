@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 import { useLocation, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
 import { requestNotificationPermission, sendNotification } from '../utils/notifications';
@@ -84,7 +85,7 @@ const Layout = ({ cartCount }) => {
                 <header className="sticky top-0 z-50 bg-green-900/90 backdrop-blur-md px-6 pt-8 pb-4 border-b border-green-800 shadow-lg">
                     <div className="flex justify-between items-center">
                         <div className="flex flex-col items-start">
-                            <img src="/src/assets/logo.png" alt="Renascer Event" className="h-20 w-auto object-contain" />
+                            <img src={logo} alt="Renascer Event" className="h-20 w-auto object-contain" />
                             <span className="font-['Great_Vibes'] text-5xl text-yellow-400 -mt-4 ml-4 drop-shadow-md tracking-wide">Lanchonete</span>
                         </div>
                         <div className="relative">
