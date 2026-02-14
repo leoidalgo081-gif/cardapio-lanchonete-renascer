@@ -3,7 +3,7 @@ import logo from '../assets/logo.png';
 import { useLocation, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useOrder } from '../context/OrderContext';
 import { requestNotificationPermission, sendNotification } from '../utils/notifications';
-import { requestNotificationPermission, sendNotification } from '../utils/notifications';
+
 import NotificationToast from './NotificationToast';
 import NotificationDrawer from './NotificationDrawer';
 
