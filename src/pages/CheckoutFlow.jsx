@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Copy, Check, ArrowLeft } from 'lucide-react';
-import { Copy, Check, ArrowLeft } from 'lucide-react';
+
 import { motion } from 'framer-motion';
 import LoadingOverlay from '../components/LoadingOverlay';
 
