@@ -7,6 +7,7 @@ import renascerLogo from '../assets/logo.png';
 import { useOrder } from '../context/OrderContext';
 
 import { requestNotificationPermission, sendNotification } from '../utils/notifications';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const AdminDashboard = () => {
     const { orders, updateOrderStatus } = useOrder();
@@ -29,9 +30,12 @@ const AdminDashboard = () => {
     }, [orders]);
 
     const [activeTab, setActiveTab] = useState('active'); // active | history
+    const [loadingId, setLoadingId] = useState(null);
 
-    const updateStatus = (id, newStatus) => {
-        updateOrderStatus(id, newStatus);
+    const updateStatus = async (id, newStatus) => {
+        setLoadingId(id);
+        await updateOrderStatus(id, newStatus);
+        setLoadingId(null);
     };
 
     const statusConfig = {
@@ -77,6 +81,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="bg-[#f0fdf4] min-h-screen pb-32">
+            {loadingId && <LoadingOverlay message="Atualizando pedido..." />}
             {/* Admin Header */}
             <header className="bg-secondary text-white p-4 shadow-lg shadow-secondary/10 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
